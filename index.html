@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TripSaathi – Smart budget trip planner</title>
+<meta name="description" content="Enter your budget, group size and days. TripSaathi picks the destination, splits the money and plans each day.">
+<style>
+:root{--ink:#14213d;--paper:#f3f7fa;--card:#fff;--sea:#0e7c86;--sun:#f2a900;--coral:#d1495b;--mute:#5b6b7f;--line:#d9e2ea;--ok:#1d8a5a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;line-height:1.45}
+h1,h2,h3{font-family:"Palatino Linotype",Palatino,Georgia,serif;margin:0}
+.wrap{max-width:1000px;margin:0 auto;padding:0 18px}
+header{background:var(--ink);color:#fff;padding:26px 0 30px}
+header h1{font-size:2.2rem}
+header p{margin:6px 0 0;color:#b9c6da;max-width:560px}
+.form{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-top:-18px;display:grid;grid-template-columns:repeat(6,1fr);gap:12px;box-shadow:0 6px 18px rgba(20,33,61,.08)}
+.form div{display:flex;flex-direction:column;gap:4px}
+.form .w2{grid-column:span 2}.form .w3{grid-column:span 3}.form .w6{grid-column:1/-1}
+label{font-size:.82rem;color:var(--mute)}
+input,select{font:inherit;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);width:100%}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--sea);outline-offset:1px}
+.go{background:var(--sea);color:#fff;border:0;border-radius:8px;padding:11px 20px;font:inherit;font-weight:600;cursor:pointer}
+.go:hover{background:#0a666e}
+.sec{background:#e8eef3;color:var(--ink)}
+.sec:hover{background:#d9e2ea}
+.row-btn{display:flex;flex-direction:row!important;gap:10px;align-items:center;flex-wrap:wrap}
+@media(max-width:720px){.form{grid-template-columns:1fr 1fr}.form .w2,.form .w3{grid-column:span 2}}
+section{margin:26px 0}
+h2{font-size:1.4rem;margin-bottom:12px}
+.verdict{border-radius:14px;padding:20px 22px;color:#fff;background:var(--sea)}
+.verdict.over{background:var(--coral)}
+.verdict h2{color:#fff;margin:0 0 4px;font-size:1.7rem}
+.verdict p{margin:0;opacity:.92}
+.nums{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}
+.nums div{background:rgba(255,255,255,.14);border-radius:10px;padding:10px 12px}
+.nums b{display:block;font-size:1.3rem}
+.nums span{font-size:.82rem;opacity:.9}
+@media(max-width:720px){.nums{grid-template-columns:1fr 1fr}}
+.stack{display:flex;height:34px;border-radius:8px;overflow:hidden;margin:6px 0 14px;background:var(--line)}
+.stack i{display:block;height:100%}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:520px}
+th,td{text-align:right;padding:9px 6px;border-bottom:1px solid var(--line);font-size:.93rem}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--mute);font-weight:600;font-size:.82rem}
+tr:last-child td{border-bottom:0;font-weight:700}
+.dot{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:8px;vertical-align:-1px}
+.pct{width:90px}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}.bar i{display:block;height:100%}
+.days{display:grid;gap:10px}
+.day{display:flex;gap:14px;background:var(--card);border:1px solid var(--line);border-left:5px solid var(--sun);border-radius:10px;padding:11px 14px}
+.day b{flex:none;min-width:52px}
+.alts{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.alt{text-align:left;font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;cursor:pointer}
+.alt:hover{border-color:var(--sea)}
+.alt b{display:block;font-size:1.02rem}
+.alt small{color:var(--mute)}
+.tag{display:inline-block;font-size:.76rem;border-radius:6px;padding:1px 7px;margin-top:6px}
+.t-ok{background:#dff3ea;color:var(--ok)}.t-no{background:#fbe3e6;color:var(--coral)}
+ul.tips{margin:0;padding-left:20px}ul.tips li{margin:5px 0}
+.note{font-size:.82rem;color:var(--mute);margin:8px 0 30px}
+@media print{header,.form,.noprint{display:none}body{background:#fff}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1>TripSaathi</h1>
+  <p>Tell us your budget, group size and days. We pick the destination, split the money and plan each day.</p>
+</div></header>
+
+<div class="wrap">
+  <div class="form">
+    <div class="w2"><label for="budget">Total budget (₹)</label><input id="budget" type="number" min="1000" step="500" value="40000"></div>
+    <div><label for="people">People</label><input id="people" type="number" min="1" max="30" value="4"></div>
+    <div><label for="days">Days</label><input id="days" type="number" min="1" max="15" value="5"></div>
+    <div class="w2"><label for="dest">Destination</label><select id="dest"></select></div>
+    <div class="w3"><label for="tier">Comfort level</label>
+      <select id="tier"><option value="auto">Auto, best that fits my budget</option><option value="0">Budget</option><option value="1">Comfort</option><option value="2">Premium</option></select></div>
+    <div class="w3"><label for="trv">Travel cost per person, round trip (₹, optional)</label><input id="trv" type="number" min="0" placeholder="Leave empty to estimate from Delhi NCR"></div>
+    <div class="w6 row-btn"><button class="go" id="plan">Plan my trip</button><span id="msg" style="color:var(--coral);font-size:.9rem"></span></div>
+  </div>
+
+  <div id="out"></div>
+  <p class="note">Costs are average 2026 estimates in rupees for travel from Delhi NCR, with 2 people per room and 1 cab per 4 people. Real prices change with season, so check live rates before booking. The planner is rule-based and runs fully in your browser.</p>
+</div>
+
+<script>
+const TN = ['Budget', 'Comfort', 'Premium'];
+const COL = {Travel:'#14213d', Stay:'#0e7c86', Food:'#f2a900', Activities:'#6a5acd', 'Local transport':'#3b9ae1', Buffer:'#9aa8b8'};
+/* per tier [budget, comfort, premium]: stay = per room per night, food/act = per person per day, trv = round trip per person, loc = cab per day */
+const D = {
+  goa:{n:'Goa',t:'Beaches and nightlife',min:3,stay:[1200,3000,8000],food:[500,1000,2200],act:[400,1000,2500],trv:[4000,9000,14000],loc:[600,1200,2500],
+    hl:['Baga and Calangute beaches','Fort Aguada and Chapora sunset','Old Goa churches and Fontainhas','Dudhsagar falls day trip','Water sports at Candolim','Anjuna flea market and cafes','Palolem beach']},
+  manali:{n:'Manali',t:'Mountains and snow',min:4,stay:[900,2500,6000],food:[400,800,1600],act:[500,1200,2500],trv:[2400,4500,9000],loc:[1200,2000,3500],
+    hl:['Solang Valley adventure','Hadimba temple and Mall Road','Old Manali cafes','Atal Tunnel and Sissu','Jogini waterfalls trek','Naggar castle','Vashisht hot springs']},
+  jaipur:{n:'Jaipur',t:'Forts, palaces and food',min:2,stay:[800,2200,6500],food:[350,700,1600],act:[400,800,1800],trv:[800,1800,5500],loc:[700,1200,2200],
+    hl:['Amber Fort','City Palace and Jantar Mantar','Hawa Mahal and Johari bazaar','Nahargarh sunset','Chokhi Dhani dinner','Albert Hall museum','Jal Mahal and Panna Meena kund']},
+  rishikesh:{n:'Rishikesh',t:'Adventure and yoga',min:2,stay:[700,2200,6000],food:[350,700,1400],act:[600,1500,3000],trv:[700,1600,4500],loc:[500,900,1800],
+    hl:['River rafting','Laxman Jhula and Ram Jhula','Ganga aarti at Triveni Ghat','Beatles Ashram','Camping and bonfire','Neer Garh waterfall','Cafe hopping by the river']},
+  shimla:{n:'Shimla',t:'Hill station and toy train',min:3,stay:[1000,2800,7000],food:[400,800,1700],act:[300,700,1500],trv:[1200,2800,6500],loc:[800,1400,2600],
+    hl:['Mall Road and The Ridge','Jakhu temple','Kufri snow point','Christ Church','Chail day trip','Toy train ride','Viceregal Lodge']},
+  udaipur:{n:'Udaipur',t:'Lakes and royal palaces',min:3,stay:[900,2800,9000],food:[400,800,2000],act:[400,1000,2200],trv:[2000,5500,9000],loc:[700,1200,2400],
+    hl:['City Palace','Lake Pichola boat ride','Sajjangarh sunset','Saheliyon ki Bari','Bagore ki Haveli evening show','Fateh Sagar lake','Kumbhalgarh day trip']},
+  varanasi:{n:'Varanasi',t:'Ghats and culture',min:2,stay:[600,2000,6000],food:[300,600,1400],act:[300,600,1200],trv:[1800,4500,8500],loc:[500,900,1800],
+    hl:['Sunrise boat ride on the Ganga','Evening aarti at Dashashwamedh Ghat','Kashi Vishwanath temple','Sarnath','Kachori gali and lassi walk','BHU campus','Ramnagar fort']},
+  ladakh:{n:'Leh Ladakh',t:'High passes and lakes',min:6,stay:[1000,3000,8000],food:[500,1000,2000],act:[700,1500,3000],trv:[9000,14000,22000],loc:[3000,4500,7000],
+    hl:['Rest day for acclimatisation','Leh palace and Shanti Stupa','Magnetic hill and Sangam','Khardung La and Nubra valley','Diskit and Hunder sand dunes','Pangong lake','Hemis monastery']},
+  kerala:{n:'Kerala',t:'Backwaters and tea hills',min:5,stay:[1000,3000,8500],food:[450,900,1800],act:[500,1200,2500],trv:[6000,10000,15000],loc:[1200,2000,3500],
+    hl:['Munnar tea gardens','Eravikulam national park','Alleppey houseboat','Kovalam beach','Athirappilly falls','Kathakali show in Kochi','Fort Kochi and Mattancherry']},
+  darjeeling:{n:'Darjeeling',t:'Tea estates and Himalayan views',min:4,stay:[900,2600,6500],food:[400,800,1600],act:[300,800,1800],trv:[3500,8000,13000],loc:[900,1500,2800],
+    hl:['Tiger Hill sunrise','Toy train and Batasia Loop','Tea estate walk','Himalayan Mountaineering Institute','Peace pagoda','Mall Road and Chowrasta','Ghoom monastery']}
+};
+const $ = s => document.querySelector(s);
+const fmt = n => '₹' + Math.round(n).toLocaleString('en-IN');
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let lastText = '';
+
+$('#dest').innerHTML = '<option value="best">Suggest the best for my budget</option>' + Object.entries(D).map(([k, d]) => `<option value="${k}">${d.n}, ${d.t}</option>`).join('');
+
+/* cost engine */
+function cost(d, p, days, tier, ovr) {
+  const rooms = Math.ceil(p / 2), nights = Math.max(0, days - 1), cabs = Math.ceil(p / 4);
+  const c = {
+    Travel: p * (ovr != null ? ovr : d.trv[tier]),
+    Stay: rooms * nights * d.stay[tier],
+    Food: p * days * d.food[tier],
+    Activities: p * days * d.act[tier],
+    'Local transport': days * d.loc[tier] * cabs
+  };
+  const sub = Object.values(c).reduce((a, b) => a + b, 0);
+  c.Buffer = Math.round(sub * 0.1);
+  return { c, total: sub + c.Buffer };
+}
+function pickTier(d, p, days, budget, ovr, pref) {
+  if (pref !== 'auto') return +pref;
+  for (let t = 2; t >= 0; t--) if (cost(d, p, days, t, ovr).total <= budget) return t;
+  return 0;
+}
+function evalAll(p, days, budget, ovr, pref) {
+  return Object.entries(D).map(([k, d]) => {
+    const tier = pickTier(d, p, days, budget, ovr, pref), r = cost(d, p, days, tier, ovr);
+    const fits = r.total <= budget, short = days < d.min;
+    const score = (fits ? 1000 + tier * 100 + 50 * r.total / budget : -100 * (r.total - budget) / budget) - (short ? 300 : 0);
+    return { k, d, tier, r, fits, short, score };
+  }).sort((a, b) => b.score - a.score);
+}
+function itinerary(d, days) {
+  let k = 0; const nx = () => d.hl[k++ % d.hl.length], out = [];
+  for (let i = 1; i <= days; i++) {
+    if (days === 1) out.push(`Reach early, ${nx()}, ${nx()}, then return at night.`);
+    else if (i === 1) out.push(`Travel to ${d.n}, check in and rest. Evening: ${nx()}.`);
+    else if (i === days) out.push(`${nx()}, buy souvenirs, check out and start the journey back.`);
+    else out.push(`${nx()}, then ${nx()}.`);
+  }
+  return out;
+}
+
+function plan() {
+  const budget = +$('#budget').value, p = Math.round(+$('#people').value), days = Math.round(+$('#days').value);
+  const ovr = $('#trv').value === '' ? null : Math.max(0, +$('#trv').value), pref = $('#tier').value, sel = $('#dest').value;
+  if (!(budget >= 1000) || !(p >= 1) || !(days >= 1)) { $('#msg').textContent = 'Enter a budget of at least ₹1,000, 1 person and 1 day.'; return; }
+  $('#msg').textContent = '';
+  const all = evalAll(p, days, budget, ovr, pref);
+  const best = sel === 'best' ? all[0] : all.find(x => x.k === sel);
+  const { d, tier, r, fits, short } = best, left = budget - r.total;
+  const cats = Object.entries(r.c), onGround = (r.c.Food + r.c.Activities + r.c['Local transport']) / days;
+  const lines = [`TripSaathi plan: ${d.n}, ${days} days, ${p} people, ${TN[tier]} level`, `Total ${fmt(r.total)} (${fmt(r.total / p)} per person) against budget ${fmt(budget)}`, ''];
+  cats.forEach(([n, v]) => lines.push(`${n}: ${fmt(v)} (${fmt(v / p)} per person)`));
+  lines.push('', ...itinerary(d, days).map((t, i) => `Day ${i + 1}: ${t}`));
+
+  let h = `<section><div class="verdict ${fits ? '' : 'over'}"><h2>${fits ? 'Your trip fits the budget' : 'This trip is over your budget'}</h2>
+    <p>${esc(d.n)} for ${days} days with ${p} ${p === 1 ? 'person' : 'people'}, ${TN[tier]} level.${sel === 'best' ? ' Picked as the best match for your budget.' : ''}</p>
+    <div class="nums"><div><b>${fmt(r.total)}</b><span>Estimated total</span></div><div><b>${fmt(r.total / p)}</b><span>Per person</span></div>
+    <div><b>${fmt(r.total / days)}</b><span>Per day for the group</span></div><div><b>${fmt(Math.abs(left))}</b><span>${fits ? 'Left in your budget' : 'More than your budget'}</span></div></div></div>`;
+  if (short) h += `<p style="color:var(--coral);margin:10px 0 0">${esc(d.n)} needs at least ${d.min} days to enjoy properly. Try ${d.min} days or pick a nearer place.</p>`;
+  h += '</section>';
+
+  h += `<section><h2>Where the money goes</h2><div class="stack">${cats.map(([n, v]) => `<i style="width:${v / r.total * 100}%;background:${COL[n]}" title="${n}"></i>`).join('')}</div>
+    <div class="card"><table><tr><th>Category</th><th>Group total</th><th>Per person</th><th class="pct">Share</th></tr>
+    ${cats.map(([n, v]) => `<tr><td><span class="dot" style="background:${COL[n]}"></span>${n}</td><td>${fmt(v)}</td><td>${fmt(v / p)}</td><td class="pct"><div class="bar"><i style="width:${v / r.total * 100}%;background:${COL[n]}"></i></div></td></tr>`).join('')}
+    <tr><td>Total</td><td>${fmt(r.total)}</td><td>${fmt(r.total / p)}</td><td></td></tr></table></div>
+    <p class="note" style="margin:8px 0 0">Stay: ${Math.ceil(p / 2)} ${Math.ceil(p / 2) === 1 ? 'room' : 'rooms'} for ${Math.max(0, days - 1)} nights. Local transport: ${Math.ceil(p / 4)} ${Math.ceil(p / 4) === 1 ? 'cab' : 'cabs'} per day. Buffer is 10% for shopping and surprises.</p></section>`;
+
+  h += `<section><h2>Day by day plan</h2><div class="days">${itinerary(d, days).map((t, i) => `<div class="day"><b>Day ${i + 1}</b><span>${esc(t)}</span></div>`).join('')}</div>
+    <p class="note" style="margin:8px 0 0">On the ground (food, activities, local transport) about ${fmt(onGround)} per day for the group, plus travel and stay above.</p></section>`;
+
+  const tips = [];
+  if (!fits) {
+    tips.push(`You need about ${fmt(-left)} more for this plan at ${TN[tier]} level.`);
+    for (let dd = days - 1; dd >= 1; dd--) if (cost(d, p, dd, tier, ovr).total <= budget) { tips.push(`Cutting the trip to ${dd} ${dd === 1 ? 'day' : 'days'} fits your budget (${fmt(cost(d, p, dd, tier, ovr).total)}).`); break; }
+    const fit = all.find(x => x.fits && !x.short); if (fit) tips.push(`${fit.d.n} fits your budget at ${TN[fit.tier]} level for ${fmt(fit.r.total)}.`);
+  } else if (tier < 2) {
+    const up = cost(d, p, days, tier + 1, ovr).total; tips.push(`Upgrading to ${TN[tier + 1]} would cost ${fmt(up)}${up <= budget ? ', which still fits your budget.' : `, so you would need ${fmt(up - budget)} more.`}`);
+  }
+  tips.push('Book trains or buses 45 to 60 days early, flights 3 to 4 weeks early.', 'Travel on weekdays and outside peak season to cut stay and travel costs.', 'Collect money from everyone before booking and keep the buffer untouched until the last day.');
+  h += `<section><h2>Smart tips</h2><div class="card"><ul class="tips">${tips.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div></section>`;
+
+  const alts = all.filter(x => x.k !== best.k).slice(0, 4);
+  h += `<section><h2>Other options for you</h2><div class="alts">${alts.map(x => `<button class="alt" data-k="${x.k}"><b>${esc(x.d.n)}</b><small>${esc(x.d.t)}</small><br><b>${fmt(x.r.total)}</b><small>${TN[x.tier]} level, ${fmt(x.r.total / p)} per person</small><br><span class="tag ${x.fits ? 't-ok' : 't-no'}">${x.fits ? 'Fits your budget' : fmt(x.r.total - budget) + ' over'}</span></button>`).join('')}</div></section>
+    <div class="noprint row-btn" style="display:flex;gap:10px"><button class="go" id="copy">Copy plan</button><button class="go sec" id="print">Print or save as PDF</button></div>`;
+
+  lastText = lines.join('\n');
+  $('#out').innerHTML = h;
+  $('#out').querySelectorAll('.alt').forEach(b => b.addEventListener('click', () => { $('#dest').value = b.dataset.k; plan(); window.scrollTo({ top: 0, behavior: 'smooth' }); }));
+  $('#copy').addEventListener('click', e => { navigator.clipboard.writeText(lastText).then(() => e.target.textContent = 'Copied', () => e.target.textContent = 'Copy failed'); });
+  $('#print').addEventListener('click', () => window.print());
+}
+$('#plan').addEventListener('click', plan);
+document.querySelectorAll('.form input').forEach(i => i.addEventListener('keydown', e => { if (e.key === 'Enter') plan(); }));
+plan();
+</script>
+</body>
+</html>
